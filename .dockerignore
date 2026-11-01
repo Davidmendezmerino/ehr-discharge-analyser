@@ -1,0 +1,16 @@
+.git
+__pycache__
+*.pyc
+*.pyo
+app/data/
+app/api/data/
+app/api/__pycache__
+app/api/scripts/
+app/api/tests/
+app/api/loaders/
+app/api/additional_test_ehr_demo.json
+app/api/model_comparison_results.json
+checkpoints/
+docs/
+*.md
+!app/api/ml/artifacts/

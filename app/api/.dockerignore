@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+scripts/
+tests/
+data/
+loaders/
+*.json
+!ml/artifacts/thresholds.json
+.git
+.gitignore
+README.md

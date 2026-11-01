@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+*.part
+.env
+.env.*
+/app/api/ml/artifacts/*
+!/app/api/ml/artifacts/README.md
+.DS_Store

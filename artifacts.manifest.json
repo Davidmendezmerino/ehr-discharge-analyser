@@ -1,0 +1,62 @@
+{
+  "space": "Dwagga/ehr-discharge-analyser",
+  "revision": "c91683b4d68be5c3d80695b23cc9b6d33081bbe8",
+  "retrieved": "2026-11-01",
+  "files": [
+    {
+      "path": "app/api/ml/artifacts/finetuned-biobert/1_Pooling/config.json",
+      "size": 312,
+      "git_blob_sha1": "70ac42bce1699d89f19c011133cf97dfada83127"
+    },
+    {
+      "path": "app/api/ml/artifacts/finetuned-biobert/config.json",
+      "size": 710,
+      "git_blob_sha1": "398670f5e0b9c42d5f1c51468bceb933c2117aff"
+    },
+    {
+      "path": "app/api/ml/artifacts/finetuned-biobert/config_sentence_transformers.json",
+      "size": 282,
+      "git_blob_sha1": "df835f8357274c8f7fdeee499c79630c66d6fadc"
+    },
+    {
+      "path": "app/api/ml/artifacts/finetuned-biobert/model.safetensors",
+      "size": 433263424,
+      "sha256": "2603b49713ff0978f42989d242f809185e49dc671bc85ce5112f57a700c9e569"
+    },
+    {
+      "path": "app/api/ml/artifacts/finetuned-biobert/modules.json",
+      "size": 229,
+      "git_blob_sha1": "f7640f94e81bb7f4f04daf1668850b38763a13d9"
+    },
+    {
+      "path": "app/api/ml/artifacts/finetuned-biobert/sentence_bert_config.json",
+      "size": 57,
+      "git_blob_sha1": "987c5855a6980cf5258e850b08c3d95ff48ecac0"
+    },
+    {
+      "path": "app/api/ml/artifacts/finetuned-biobert/tokenizer.json",
+      "size": 669175,
+      "git_blob_sha1": "64272269b736de7233ed89d70677f6765f966346"
+    },
+    {
+      "path": "app/api/ml/artifacts/finetuned-biobert/tokenizer_config.json",
+      "size": 565,
+      "git_blob_sha1": "95b36c1bc0b0638d3171f442d266fd0700b3407b"
+    },
+    {
+      "path": "app/api/ml/artifacts/mlb.joblib",
+      "size": 730,
+      "sha256": "edc73874c247ce210174922a1f1dc55aa3449af851256529da7394688aa9f8d1"
+    },
+    {
+      "path": "app/api/ml/artifacts/pipeline.joblib",
+      "size": 45994,
+      "sha256": "7a7901b683964ad2489996bb159b3de9571e152b70ebce8048912821589ceb9b"
+    },
+    {
+      "path": "app/api/ml/artifacts/thresholds.json",
+      "size": 149,
+      "git_blob_sha1": "3f51225b00ea4a9de25dedb6617559f7e8ab5a31"
+    }
+  ]
+}
