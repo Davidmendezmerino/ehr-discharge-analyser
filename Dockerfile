@@ -8,18 +8,7 @@ COPY app/ui/requirements.txt /tmp/ui-requirements.txt
 
 RUN pip install --no-cache-dir \
     -r /tmp/api-requirements.txt \
-    -r /tmp/ui-requirements.txt && \
-    # Remove unused packages to save space
-    rm -rf /usr/local/lib/python3.11/site-packages/torch/test \
-    /usr/local/lib/python3.11/site-packages/torch/benchmarks \
-    /usr/local/lib/python3.11/site-packages/torch/include \
-    /usr/local/lib/python3.11/site-packages/torch/share \
-    /usr/local/lib/python3.11/site-packages/networkx \
-    /usr/local/lib/python3.11/site-packages/pygments \
-    /usr/local/lib/python3.11/site-packages/pip \
-    /usr/local/lib/python3.11/site-packages/setuptools \
-    && \
-    rm -rf /tmp/* /root/.cache
+    -r /tmp/ui-requirements.txt
 
 # Copy API code
 COPY app/api/main.py /app/api/main.py

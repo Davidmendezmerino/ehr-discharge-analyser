@@ -3,10 +3,13 @@ Servicio de inferencia: toma texto libre, ejecuta el predictor,
 y devuelve resultados estructurados compatibles con el frontend.
 """
 
-import re
-from typing import Dict, List, Tuple
+from __future__ import annotations
 
-from ml.predictor import get_predictor, SentenceResult
+import re
+from typing import List, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ml.predictor import SentenceResult
 from models.schemas import ACTION_LABELS
 
 
@@ -17,6 +20,8 @@ def run_inference(text: str) -> dict:
     Returns:
         dict con keys: sentences, grouped_items, spans
     """
+    from ml.predictor import get_predictor
+
     predictor = get_predictor()
     results = predictor.predict(text)
 
@@ -83,34 +88,14 @@ def _find_sentence_in_text(
     sentence: str,
     used: set,
 ) -> Tuple[int, int] | None:
-    """Busca una frase en el texto, intentando coincidencia exacta y luego fuzzy."""
-    # Intento 1: búsqueda exacta
-    idx = text.find(sentence)
-    if idx >= 0:
-        pos = (idx, idx + len(sentence))
-        if pos not in used:
-            return pos
-
-    # Intento 2: buscar con espacios normalizados
-    pattern = re.escape(sentence)
-    pattern = pattern.replace(r"\ ", r"\s+")
-    match = re.search(pattern, text)
-    if match:
-        pos = (match.start(), match.end())
-        if pos not in used:
-            return pos
-
-    # Intento 3: buscar las primeras N palabras como anclaje
+    """Locate complete evidence, allowing only whitespace normalization."""
     words = sentence.split()
-    if len(words) >= 3:
-        anchor = r"\s+".join(re.escape(w) for w in words[:4])
-        match = re.search(anchor, text)
-        if match:
-            # Extender hasta el final de la línea o siguiente punto
-            end_idx = match.start() + len(sentence)
-            end_idx = min(end_idx, len(text))
-            pos = (match.start(), end_idx)
-            if pos not in used:
-                return pos
+    if not words:
+        return None
+    pattern = r"\s+".join(re.escape(word) for word in words)
+    for match in re.finditer(pattern, text):
+        position = (match.start(), match.end())
+        if position not in used:
+            return position
 
     return None

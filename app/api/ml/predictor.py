@@ -1,5 +1,5 @@
-﻿"""
-M├│dulo de inferencia: carga el modelo entrenado y predice labels
+"""
+Módulo de inferencia: carga el modelo entrenado y predice labels
 para frases nuevas.
 
 Uso:
@@ -15,14 +15,13 @@ from typing import Dict, List, Optional
 
 import joblib
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 ARTIFACTS_DIR = Path(__file__).resolve().parent / "artifacts"
 DEFAULT_THRESHOLD = 0.35
 
 
 class SentenceResult:
-    """Resultado de predicci├│n para una frase."""
+    """Resultado de predicción para una frase."""
 
     def __init__(
         self,
@@ -52,9 +51,11 @@ class Predictor:
 
         if not pipeline_path.exists() or not mlb_path.exists():
             raise FileNotFoundError(
-                f"No se encuentran los artefactos del modelo en {ARTIFACTS_DIR}. "
-                "Ejecuta primero: python scripts/train_baseline.py"
+                f"Model artifacts are missing from {ARTIFACTS_DIR}. "
+                "From the repository root, run: python scripts/download_artifacts.py"
             )
+
+        from sentence_transformers import SentenceTransformer
 
         artifacts = joblib.load(pipeline_path)
         model_name = artifacts["model_name"]
@@ -66,7 +67,7 @@ class Predictor:
         # resolver como path absoluto; si no, tratar como nombre HuggingFace.
         model_path = model_name
         if not model_name.startswith("/") and "/" in model_name:
-            # Ruta relativa ÔåÆ resolver desde /app/ (Docker) o desde el proyecto
+            # Ruta relativa → resolver desde /app/ (Docker) o desde el proyecto
             candidates = [
                 Path("/app") / model_name,               # Docker
                 Path(__file__).resolve().parents[1] / model_name,  # Local (desde ml/)
@@ -93,14 +94,14 @@ class Predictor:
     # Patrones de frases no-accionables (metadata, narrativa, headers)
     _NON_ACTIONABLE = re.compile(
         r'^\s*('
-        # Metadata / demograf├¡a del paciente
+        # Metadata / demografía del paciente
         r'Patient\s+(Name|ID|DOB|Date of Birth|Age|Sex|Gender|MRN|Account)'
         r'|Date of (Birth|Admission|Discharge|Service)'
         r'|Admission Date|Discharge Date|Service Date'
         r'|MRN\s*[:#]|Account\s*[:#]'
         r'|Attending\s*[:#]|Dictated\s+[Bb]y|Signed\s+[Bb]y'
         r'|Completed\s+by'
-        # Headers de secci├│n
+        # Headers de sección
         r'|DISCHARGE SUMMARY\s*[:#]?$'
         r'|DISCHARGE DIAGNOSIS|DISCHARGE CONDITION|DISCHARGE DISPOSITION'
         r'|ADMITTING DIAGNOSIS|PRINCIPAL DIAGNOSIS'
@@ -112,7 +113,7 @@ class Predictor:
         re.IGNORECASE
     )
 
-    # Patrones de narrativa/historia (frases que describen lo que pas├│, no instrucciones)
+    # Patrones de narrativa/historia (frases que describen lo que pasó, no instrucciones)
     _NARRATIVE_PATTERNS = re.compile(
         r'('
         r'evaluated the patient'
@@ -150,7 +151,7 @@ class Predictor:
     def _is_actionable(self, sentence: str) -> bool:
         """
         Filtra frases no-accionables: metadata, headers, narrativa, fragments.
-        Devuelve True si la frase podr├¡a contener instrucciones accionables.
+        Devuelve True si la frase podría contener instrucciones accionables.
         """
         s = sentence.strip()
 
@@ -174,7 +175,7 @@ class Predictor:
 
         return True
 
-    # ÔöÇÔöÇ Section-aware parsing ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    # ── Section-aware parsing ──────────────────────────────────────
     # Sections where content is actionable (discharge instructions)
     _ACTIONABLE_SECTIONS = {
         "discharge instructions",
@@ -294,13 +295,13 @@ class Predictor:
                     is_header = True
                     header_name = stripped.lower()
 
-            # Pattern 3: Inline header ÔÇö "SECTION NAME:  Content starts here"
+            # Pattern 3: Inline header — "SECTION NAME:  Content starts here"
             # Common in MIMIC-III: header and content on the same line
             if not is_header and ':' in line:
                 colon_pos = line.index(':')
                 before = line[:colon_pos].strip()
                 after = line[colon_pos + 1:].strip()
-                # Header part must be short (Ôëñ8 words), mostly uppercase or title case
+                # Header part must be short (≤8 words), mostly uppercase or title case
                 if before and after and len(before.split()) <= 8:
                     before_clean = before.rstrip(':.').strip()
                     alpha_count = sum(1 for c in before_clean if c.isalpha())
@@ -393,7 +394,7 @@ class Predictor:
             clf = self.classifiers[label]
             proba_matrix[:, j] = clf.predict_proba(X)[:, 1]
 
-        # Labels m├ís espec├¡ficos que Patient Instructions
+        # Labels más específicos que Patient Instructions
         SPECIFIC_LABELS = {"Appointment", "Medication", "Lab", "Procedure", "Imaging"}
 
         results = []
@@ -404,15 +405,15 @@ class Predictor:
             confidences = {}
 
             for j, label in enumerate(self.mlb.classes_):
-                conf = float(round(proba_row[j], 3))
-                # Usar threshold espec├¡fico del label, o el global
+                raw_confidence = float(proba_row[j])
+                # Usar threshold específico del label, o el global
                 threshold = self.thresholds.get(label, DEFAULT_THRESHOLD)
-                if conf >= threshold:
+                if raw_confidence >= threshold:
                     active_labels.append(label)
-                    confidences[label] = conf
+                    confidences[label] = round(raw_confidence, 3)
 
             # Post-procesamiento: mutual exclusion para Patient Instructions
-            # Si PI coexiste con un label m├ís espec├¡fico, eliminar PI
+            # Si PI coexiste con un label más específico, eliminar PI
             if "Patient Instructions" in active_labels and len(active_labels) > 1:
                 has_specific = any(
                     label in SPECIFIC_LABELS
@@ -444,9 +445,9 @@ class Predictor:
     # Abreviaturas que NO deben cortar frases
     _ABBREVS = re.compile(
         r'\b('
-        # T├¡tulos
+        # Títulos
         r'Dr|Mr|Mrs|Ms|Prof|Sr|Jr|Rev'
-        # M├®dicas
+        # Médicas
         r'|Pt|Dx|Rx|Tx|Hx|Sx|Bx|Fx|Cx|Px|Mx'
         r'|Drs|Surg|Med|Pharm|Rehab|Psych'
         # Unidades / medidas
@@ -460,9 +461,9 @@ class Predictor:
         r')\.',
         re.IGNORECASE
     )
-    _PLACEHOLDER = '\x00'  # car├ícter temporal para proteger abreviaturas
+    _PLACEHOLDER = '\x00'  # carácter temporal para proteger abreviaturas
 
-    # Prefijos de secci├│n que aparecen inline (ej: "Discharge Instructions: Take...")
+    # Prefijos de sección que aparecen inline (ej: "Discharge Instructions: Take...")
     _INLINE_PREFIXES = re.compile(
         r'^\s*('
         r'Discharge\s+(Instructions|Summary|Plan|Orders)'
@@ -484,10 +485,10 @@ class Predictor:
         3. Filter short fragments and section headers
         4. Strip inline section prefixes
         """
-        # Proteger abreviaturas: "Dr." ÔåÆ "Dr\x00"
+        # Proteger abreviaturas: "Dr." → "Dr\x00"
         protected = cls._ABBREVS.sub(lambda m: m.group(1) + cls._PLACEHOLDER, text)
 
-        # ÔöÇÔöÇ Step 1: Join wrapped lines into paragraphs ÔöÇÔöÇ
+        # ── Step 1: Join wrapped lines into paragraphs ──
         # In clinical documents (MIMIC-III), text wraps at ~80 chars.
         # A line that does NOT end with sentence-ending punctuation (.!?)
         # MAY be a continuation of the previous line (hard-wrap) OR
@@ -505,7 +506,7 @@ class Predictor:
             stripped = raw_line.strip()
 
             if not stripped:
-                # Blank line ÔåÆ end current paragraph
+                # Blank line → end current paragraph
                 if current_para:
                     paragraphs.append(" ".join(current_para))
                     current_para = []
@@ -535,7 +536,7 @@ class Predictor:
         if current_para:
             paragraphs.append(" ".join(current_para))
 
-        # ÔöÇÔöÇ Step 2: Split paragraphs into sentences ÔöÇÔöÇ
+        # ── Step 2: Split paragraphs into sentences ──
         sentences = []
         for para in paragraphs:
             para = para.strip()
@@ -545,7 +546,7 @@ class Predictor:
             # Split by sentence-ending punctuation followed by space + capital
             parts = re.split(r'(?<=[.!?])\s+(?=[A-Z])', para)
             for part in parts:
-                # Restaurar abreviaturas: "Dr\x00" ÔåÆ "Dr."
+                # Restaurar abreviaturas: "Dr\x00" → "Dr."
                 part = part.replace(cls._PLACEHOLDER, '.').strip()
                 if len(part) >= 5 and not cls._is_section_header(part):
                     # Strip inline section prefixes
@@ -557,7 +558,7 @@ class Predictor:
 
     @staticmethod
     def _is_section_header(text: str) -> bool:
-        """Detecta encabezados de secci├│n como 'Discharge Instructions:'."""
+        """Detecta encabezados de sección como 'Discharge Instructions:'."""
         stripped = text.rstrip('.')
         # Encabezado: termina en ":" y tiene pocas palabras
         if stripped.endswith(':') and len(stripped.split()) <= 6:

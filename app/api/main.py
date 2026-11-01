@@ -1,8 +1,7 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
 
 from models.schemas import (
     ExtractRequest,
-    ExtractResponse,
     InferRequest,
     InferResponse,
 )
@@ -16,9 +15,9 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/clip/extract", response_model=ExtractResponse)
+@app.post("/clip/extract", status_code=501, response_description="Not implemented", summary="Unimplemented placeholder; use /clip/infer")
 def clip_extract(req: ExtractRequest):
-    return ExtractResponse(spans=[])
+    raise HTTPException(status_code=501, detail="This endpoint is not implemented. Use POST /clip/infer.")
 
 
 @app.post("/clip/infer", response_model=InferResponse)
@@ -33,6 +32,6 @@ def clip_infer(req: InferRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/deid/redact")
+@app.post("/deid/redact", status_code=501, response_description="Not implemented", summary="De-identification is not implemented")
 def deid_redact(req: ExtractRequest):
-    return {"redacted_text": req.text, "spans": []}
+    raise HTTPException(status_code=501, detail="De-identification is not implemented. No redaction is performed.")

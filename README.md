@@ -20,7 +20,7 @@ The implementation includes application integration, sentence/section processing
 
 ## Run locally with Docker
 
-Python 3.11 or newer is needed only for the artifact-download helper. Docker runs the application with the original Python 3.11 image and pinned application dependencies.
+Python 3.11 or newer is needed only for the artifact-download helper. Docker runs the application in a Python 3.11 image with the declared application dependencies.
 
 ```sh
 git clone https://github.com/Davidmendezmerino/ehr-discharge-analyser.git
@@ -36,7 +36,14 @@ Model weights and classifier artifacts are excluded from Git. The helper downloa
 
 ## Run the two services without Docker
 
-Use a Python 3.11 virtual environment, install `app/api/requirements.txt` and `app/ui/requirements.txt`, and run the artifact helper first. In one terminal:
+Use a Python 3.11 or 3.12 virtual environment. From the repository root, after activating that environment:
+
+```sh
+python -m pip install -r app/api/requirements.txt -r app/ui/requirements.txt
+python scripts/download_artifacts.py
+```
+
+In one terminal, with the same environment active:
 
 ```sh
 cd app/api
@@ -53,7 +60,18 @@ The UI defaults to `http://localhost:8000`; `API_URL` can select another API add
 
 ## Scope
 
-This repository publishes the existing deployed application, rather than a training pipeline or an independently validated clinical system. No clinical performance, time saving or hospital use is claimed. The FHIR-like export is a demonstration and is not a conformance claim. The `/deid/redact` endpoint is a placeholder that returns the input unchanged; it does not anonymise text. Use the supplied examples or synthetic text when trying the public demo.
+This repository contains the application originally deployed on Hugging Face, with the reliability fixes listed in [SOURCE.md](SOURCE.md). It does not include a training pipeline or an independently validated clinical system. No clinical performance, time saving or hospital use is claimed. The FHIR-like export is a demonstration and is not a conformance claim. The unused `/clip/extract` and `/deid/redact` placeholder routes explicitly return HTTP 501; extraction is provided by `/clip/infer`, and de-identification is not implemented. Use the supplied examples or synthetic text when trying the public demo.
+
+## Run the regression checks
+
+In an activated environment, from the repository root:
+
+```sh
+python -m pip install -r requirements-dev.txt
+python -m unittest discover -s tests -v
+```
+
+The tests cover HTTP behaviour, missing-artifact instructions, repeated sentences, source offsets and classification thresholds. They do not download the encoder or measure clinical accuracy. A local CPU smoke test using the pinned model files was also completed with Python 3.12; this does not establish performance on a clinical dataset.
 
 ## Repository layout
 
@@ -65,6 +83,7 @@ This repository publishes the existing deployed application, rather than a train
 | `app/ui/app.py` | Streamlit review interface |
 | `scripts/download_artifacts.py` | Download and verify the runtime artifacts |
 | `artifacts.manifest.json` | Pinned artifact provenance and integrity values |
-| `Dockerfile`, `start.sh` | Original container and service entry points |
+| `Dockerfile`, `start.sh` | Container and service entry points |
+| `tests/` | API, evidence and threshold regression checks |
 
 **Author:** David Méndez Merino. The original Space declares Apache-2.0 for this application. Pretrained models retain their own terms and attribution; see [SOURCE.md](SOURCE.md).
